@@ -1,8 +1,10 @@
-const Cryptr = require("cryptr");
+const Crypto = require("crypto");
+const { Buffer } = require("buffer");
+const fs = require("fs");
 
 // Using a function generateKeyFiles
 function generateKeyFiles() {
-  const keyPair = crypto.generateKeyPairSync("rsa", {
+  const keyPair = Crypto.generateKeyPairSync("rsa", {
     modulusLength: 520,
     publicKeyEncoding: {
       type: "spki",
@@ -19,8 +21,8 @@ function generateKeyFiles() {
   });
 
   // Creating private key file
-  fs.writeFileSync("publicpem", keyPair.publicKey);
-  fs.writeFileSync("privatepem", keyPair.privateKey);
+  fs.writeFileSync("public.pem", keyPair.publicKey);
+  fs.writeFileSync("private.pem", keyPair.privateKey);
 }
 
 // Generate keys
@@ -33,10 +35,11 @@ function encryptString(plaintext, privateKeyFile, publicKeyFile) {
 
   const publicKey = fs.readFileSync(publicKeyFile, "utf8");
   const privateKey = fs.readFileSync(privateKeyFile, "utf8");
+  const data = Buffer.from(plaintext);
 
   //signature creation:
-  const sigstr = crypto.sign("SHA256", plaintext, { key: privateKey, passphrase: "Hello world" }).toString("base64");
-  const gcverify = crypto.verify("RSA-SHA256", plaintext, publicKey, Buffer.from(sigstr, "base64"));
+  const sigstr = Crypto.sign("SHA256", data, { key: privateKey, passphrase: "pluk" }).toString("base64");
+  const gcverify = Crypto.verify("RSA-SHA256", data, publicKey, Buffer.from(sigstr, "base64"));
 
   console.log("sig verified using pub key?: ", gcverify);
 
